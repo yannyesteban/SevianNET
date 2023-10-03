@@ -42,7 +42,7 @@ namespace Whendy
         public static void Main(string[] args)
         {
 
-            Console.WriteLine(Keyword.getType("if"));
+            Console.WriteLine(Keyword.getType("for"));
 
             Console.WriteLine("que {0}", "yanny");
 
