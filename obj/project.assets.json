@@ -1891,11 +1891,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\hi4i\\source\\net\\Sevian\\Sevian.csproj",
+      "projectUniqueName": "c:\\Users\\hi4i\\source\\net\\Sevian\\Sevian.csproj",
       "projectName": "Sevian",
-      "projectPath": "C:\\Users\\hi4i\\source\\net\\Sevian\\Sevian.csproj",
+      "projectPath": "c:\\Users\\hi4i\\source\\net\\Sevian\\Sevian.csproj",
       "packagesPath": "C:\\Users\\hi4i\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\hi4i\\source\\net\\Sevian\\obj\\",
+      "outputPath": "c:\\Users\\hi4i\\source\\net\\Sevian\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\hi4i\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -1947,7 +1947,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Users\\hi4i\\AppData\\Roaming\\.dotnet\\sdk\\7.0.100\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Users\\hi4i\\AppData\\Roaming\\dotnet\\sdk\\7.0.401\\RuntimeIdentifierGraph.json"
       }
     }
   }

@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Net;
 using System.Text.Json;
-
+//using Whendy;
 namespace Whendy
 {
 
@@ -13,6 +13,7 @@ namespace Whendy
         public int celsius { get; set; }
         public string? Summary { get; set; }
     }
+
 
 
     class App
@@ -38,9 +39,10 @@ namespace Whendy
 
 
 
+        public static void Test1(){
+            Tool.Do("que");
 
-        public static void Main(string[] args)
-        {
+            Console.WriteLine(Tool.Do("x"));
 
             Console.WriteLine(Keyword.getType("for"));
 
@@ -75,7 +77,12 @@ namespace Whendy
             Console.WriteLine($"Date: {weatherForecast.Date}");
             Console.WriteLine($"TemperatureCelsius: {weatherForecast.celsius}");
             Console.WriteLine($"Summary: {weatherForecast.Summary}");
+        }
 
+        public static void Main(string[] args)
+        {
+
+            
         }
 
 

@@ -8,8 +8,8 @@ namespace Whendy;
 
 public enum Token
 {
-    IDENT = 1, // main
     ILLEGAL,
+    IDENT = 1, // main
     EOF,
     EOL, // \n
     COMMENT,
@@ -91,7 +91,8 @@ public enum Token
 
 public static class Keyword
 {
-    private readonly static Dictionary<string, Whendy.Token> keywords = new (){
+    private readonly static int LowestPrec = 0;
+    private readonly static Dictionary<string, Whendy.Token> keywords = new(){
         {"if", Token.IF},
         {"else", Token.ELSE},
         {"case", Token.CASE},
@@ -115,16 +116,28 @@ public static class Keyword
     };
 
 
-    public static Token getType(String token)
+    public static Token GetType(String token)
     {
 
 
-        //Keyword.keywords.Add("if", Whendy.Token.IF);
+        //Keyword.keywords.Add("if", Whendy.TokenType.IF);
         if (keywords.ContainsKey(token))
         {
             return keywords[token];
         }
 
         return Token.IDENT;
+    }
+
+    public static int precedence(Token op) {
+        return op switch
+        {
+            Token.OR => 1,
+            Token.AND => 2,
+            Token.EQL or Token.NEQ or Token.LSS or Token.LEQ or Token.GTR or Token.GEQ => 3,
+            Token.ADD or Token.SUB => 4,//case Token.OR:
+            Token.MUL or Token.DIV or Token.MOD => 5,//case Token.AND:
+            _ => LowestPrec,
+        };
     }
 }
