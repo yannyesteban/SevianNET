@@ -1,8 +1,8 @@
 namespace Whendy;
 
-public struct Item
+public struct Token
 {
-    public Item(int pos, string value, int priority, Token type)
+    public Token(int pos, string value, int priority, TokenType type)
     {
         this.Pos = pos;
         this.Value = value;
@@ -13,7 +13,7 @@ public struct Item
     public int Pos;
     public string Value;
     public int Priority;
-    public Token Type;
+    public TokenType Type;
 
 
 
@@ -47,17 +47,17 @@ public class Lexer
         throw new SystemException();
     }
 
-    private Token evalOp(char ch, Token tokenDefault, Token tokenAssign, Token tokenX2, Token tokenX3)
+    private TokenType evalOp(char ch, TokenType tokenDefault, TokenType tokenAssign, TokenType tokenX2, TokenType tokenX3)
     {
         if (this.ch == '=')
         {
             Next();
             return tokenAssign;
         }
-        if (tokenX2 != Token.ILLEGAL && this.ch == ch)
+        if (tokenX2 != TokenType.ILLEGAL && this.ch == ch)
         {
             Next();
-            if (tokenX3 != Token.ILLEGAL && this.ch == ch)
+            if (tokenX3 != TokenType.ILLEGAL && this.ch == ch)
             {
                 Next();
                 return tokenX3;
@@ -67,9 +67,9 @@ public class Lexer
         return tokenDefault;
     }
 
-    private Token doubleOp(char ch, Token tokenDefault, Token tokenX2)
+    private TokenType doubleOp(char ch, TokenType tokenDefault, TokenType tokenX2)
     {
-        if (tokenX2 != Token.ILLEGAL && this.ch == ch)
+        if (tokenX2 != TokenType.ILLEGAL && this.ch == ch)
         {
             Next();
             return tokenX2;
@@ -165,10 +165,10 @@ public class Lexer
         }
 
     }
-    private (string, Token) ScanNumber()
+    private (string, TokenType) ScanNumber()
     {
         int offs = this.pos;
-        Token tok = Token.INT;
+        TokenType tok = TokenType.INT;
 
         int _base = 10;        // number base
         char prefix = '0'; // one of 0 (decimal), '0' (0-octal), 'x', 'o', or 'b'
@@ -179,7 +179,7 @@ public class Lexer
         // integer part
         if (this.ch != '.')
         {
-            tok = Token.INT;
+            tok = TokenType.INT;
             if (this.ch == '0')
             {
                 Next();
@@ -212,7 +212,7 @@ public class Lexer
         // fractional part
         if (this.ch == '.')
         {
-            tok = Token.FLOAT;
+            tok = TokenType.FLOAT;
             if (prefix == 'o' || prefix == 'b')
             {
                 //s.error(s.offset, "invalid radix point in "+litname(prefix))
@@ -239,7 +239,7 @@ public class Lexer
             }
             */
             Next();
-            tok = Token.FLOAT;
+            tok = TokenType.FLOAT;
             if (this.ch == '+' || this.ch == '-')
             {
                 Next();
@@ -378,6 +378,23 @@ public class Lexer
 
         return true;
     }
+
+    string stripCR(string b, bool comment)
+    {
+        string c = "";
+        int i = 0;
+        int j = 0;
+        foreach (char ch in b)
+        {
+            if (ch != '\r' || comment && i > "/*".Length && c[i - 1] == '*' && j + 1 < b.Length && b[j + 1] == '/')
+            {
+                c += ch;
+                i++;
+            }
+            j++;
+        }
+        return c;
+    }
     private string scanString(char quote)
     {
         // '"' opening already consumed
@@ -405,13 +422,48 @@ public class Lexer
         return input[(offs + 1)..(this.pos - 1)];
         //return this.input.substring(offs, this.pos);
     }
-    public Item Scan()
+
+    private string scanRawString()
+    {
+        // '`' opening already consumed
+        var offs = rd - 1;
+
+        bool hasCR = false;
+        while (true)
+        {
+            var ch = this.ch;
+            if (ch < 0)
+            {
+                this.error("raw string literal not terminated");
+                break;
+            }
+            Next();
+            if (ch == '`')
+            {
+                break;
+            }
+            if (ch == '\r')
+            {
+                hasCR = true;
+            }
+        }
+
+        var lit = input[offs..this.rd];
+        if (hasCR)
+        {
+            lit = stripCR(lit, false);
+        }
+
+        return lit;
+    }
+
+    public Token Scan()
     {
 
-        char _ch;
+        char ch;
         string lit = "*** ERROR ***";
 
-        Token tok = Token.ILLEGAL;
+        TokenType tok = TokenType.ILLEGAL;
         int offs = 0;
 
         bool markEOL = false;
@@ -420,13 +472,13 @@ public class Lexer
         {
             this.SkipWhitespace();
 
-            _ch = this.ch;
+            ch = this.ch;
             offs = this.pos;
             //console.log(this.ch)
 
             markEOL = false;
 
-            if (IsLetter(ch) || _ch == '_')
+            if (IsLetter(ch) || ch == '_')
             {
                 lit = this.scanIdentifier();
                 //console.log(".....", lit)
@@ -435,10 +487,10 @@ public class Lexer
                     tok = Keyword.GetType(lit);
                     switch (tok)
                     {
-                        case Token.IDENT:
-                        case Token.BREAK:
-                        case Token.CONTINUE:
-                        case Token.RETURN:
+                        case TokenType.IDENT:
+                        case TokenType.BREAK:
+                        case TokenType.CONTINUE:
+                        case TokenType.RETURN:
                             markEOL = true;
                             break;
                     }
@@ -446,7 +498,7 @@ public class Lexer
                 else
                 {
                     markEOL = true;
-                    tok = Token.IDENT;
+                    tok = TokenType.IDENT;
                 }
                 break;
 
@@ -472,20 +524,20 @@ public class Lexer
                         if (this.markEOL)
                         {
                             this.markEOL = false;
-                            tok = Token.SEMICOLON;
+                            tok = TokenType.SEMICOLON;
                             lit = "EOF";
 
                         }
                         else
                         {
-                            tok = Token.EOF;
+                            tok = TokenType.EOF;
                         }
 
                         break;
 
                     case '\n':
                         markEOL = false;
-                        tok = Token.SEMICOLON;
+                        tok = TokenType.SEMICOLON;
                         lit = "\n";
                         break;
                     case '"':
@@ -498,142 +550,142 @@ public class Lexer
                             lit = ch;
                         }*/
                         markEOL = true;
-                        tok = Token.STRING;
+                        tok = TokenType.STRING;
                         lit = this.scanString(ch);
                         break;
                     case ':':
-                        tok = this.evalOp(ch, Token.COLON, Token.LET, Token.ILLEGAL, Token.ILLEGAL);
+                        tok = this.evalOp(ch, TokenType.COLON, TokenType.LET, TokenType.ILLEGAL, TokenType.ILLEGAL);
                         lit = this.input[offs..this.pos];
                         break;
                     case '.':
-                        tok = Token.DOT;
+                        tok = TokenType.DOT;
                         lit = ".";
                         break;
                     case '(':
-                        tok = Token.LPAREN;
+                        tok = TokenType.LPAREN;
                         lit = "(";
                         break;
                     case ')':
                         markEOL = true;
-                        tok = Token.RPAREN;
+                        tok = TokenType.RPAREN;
                         lit = ")";
                         break;
                     case '[':
-                        tok = Token.LBRACK;
+                        tok = TokenType.LBRACK;
                         lit = "[";
                         break;
 
                     case ']':
                         markEOL = true;
-                        tok = Token.RBRACK;
+                        tok = TokenType.RBRACK;
                         lit = "]";
                         break;
                     case '{':
-                        tok = Token.LBRACE;
+                        tok = TokenType.LBRACE;
                         lit = "{";
                         break;
                     case '}':
                         //markEOL = true;
-                        tok = Token.RBRACE;
+                        tok = TokenType.RBRACE;
                         lit = "}";
                         break;
                     case ',':
-                        tok = Token.COMMA;
+                        tok = TokenType.COMMA;
                         lit = ",";
                         break;
                     case ';':
-                        tok = Token.SEMICOLON;
+                        tok = TokenType.SEMICOLON;
                         lit = ";";
                         break;
                     case '?':
-                        tok = Token.QUESTION;
+                        tok = TokenType.QUESTION;
                         lit = "?";
                         if (this.ch == '?')
                         {
                             Next();
-                            tok = Token.COALESCE;
+                            tok = TokenType.COALESCE;
                             lit = "??";
                         }
                         break;
                     case '+':
-                        tok = this.evalOp(ch, Token.ADD, Token.ADD_ASSIGN, Token.INCR, Token.ILLEGAL);
+                        tok = this.evalOp(ch, TokenType.ADD, TokenType.ADD_ASSIGN, TokenType.INCR, TokenType.ILLEGAL);
                         lit = this.input[offs..this.pos];
-                        if (tok == Token.INCR)
+                        if (tok == TokenType.INCR)
                         {
                             markEOL = true;
                         }
                         break;
                     case '-':
-                        tok = this.evalOp(ch, Token.SUB, Token.SUB_ASSIGN, Token.DECR, Token.ILLEGAL);
+                        tok = this.evalOp(ch, TokenType.SUB, TokenType.SUB_ASSIGN, TokenType.DECR, TokenType.ILLEGAL);
                         lit = this.input[offs..this.pos];
-                        if (tok == Token.DECR)
+                        if (tok == TokenType.DECR)
                         {
                             markEOL = true;
                         }
                         break;
                     case '*':
-                        tok = this.evalOp(ch, Token.MUL, Token.MUL_ASSIGN, Token.POW, Token.ILLEGAL);
+                        tok = this.evalOp(ch, TokenType.MUL, TokenType.MUL_ASSIGN, TokenType.POW, TokenType.ILLEGAL);
                         lit = this.input[offs..this.pos];
                         break;
                     case '/':
-                        tok = this.evalOp(ch, Token.DIV, Token.DIV_ASSIGN, Token.ILLEGAL, Token.ILLEGAL);
+                        tok = this.evalOp(ch, TokenType.DIV, TokenType.DIV_ASSIGN, TokenType.ILLEGAL, TokenType.ILLEGAL);
                         lit = this.input[offs..this.pos];
                         break;
                     case '%':
-                        tok = this.evalOp(ch, Token.MOD, Token.MOD_ASSIGN, Token.ILLEGAL, Token.ILLEGAL);
+                        tok = this.evalOp(ch, TokenType.MOD, TokenType.MOD_ASSIGN, TokenType.ILLEGAL, TokenType.ILLEGAL);
                         lit = this.input[offs..this.pos];
                         break;
                     case '=':
 
-                        tok = this.evalOp(ch, Token.ASSIGN, Token.EQL, Token.ILLEGAL, Token.ILLEGAL);
+                        tok = this.evalOp(ch, TokenType.ASSIGN, TokenType.EQL, TokenType.ILLEGAL, TokenType.ILLEGAL);
                         lit = this.input[offs..this.pos];
 
                         break;
                     case '!':
 
-                        tok = this.evalOp(ch, Token.NOT, Token.NEQ, Token.ILLEGAL, Token.ILLEGAL);
+                        tok = this.evalOp(ch, TokenType.NOT, TokenType.NEQ, TokenType.ILLEGAL, TokenType.ILLEGAL);
                         lit = this.input[offs..this.pos];
 
                         break;
                     case '&':
 
-                        tok = this.doubleOp(ch, Token.BIT_AND, Token.AND);
+                        tok = this.doubleOp(ch, TokenType.BIT_AND, TokenType.AND);
                         lit = this.input[offs..this.pos];
 
                         break;
                     case '|':
 
-                        tok = this.doubleOp(ch, Token.BIT_OR, Token.OR);
+                        tok = this.doubleOp(ch, TokenType.BIT_OR, TokenType.OR);
                         lit = this.input[offs..this.pos];
 
                         break;
                     case '<':
 
-                        tok = this.evalOp(ch, Token.LSS, Token.LEQ, Token.ILLEGAL, Token.ILLEGAL);
+                        tok = this.evalOp(ch, TokenType.LSS, TokenType.LEQ, TokenType.ILLEGAL, TokenType.ILLEGAL);
                         lit = this.input[offs..this.pos];
 
                         break;
                     case '>':
 
-                        tok = this.evalOp(ch, Token.GTR, Token.GEQ, Token.ILLEGAL, Token.ILLEGAL);
+                        tok = this.evalOp(ch, TokenType.GTR, TokenType.GEQ, TokenType.ILLEGAL, TokenType.ILLEGAL);
                         lit = this.input[offs..this.pos];
 
                         break;
                     case '@':
-                        tok = Token.AT;
+                        tok = TokenType.AT;
                         lit = "@";
                         break;
                     case '$':
-                        tok = Token.DOLAR;
+                        tok = TokenType.DOLAR;
                         lit = "$";
                         break;
                     case '#':
-                        tok = Token.HASHTAG;
+                        tok = TokenType.HASHTAG;
                         lit = "#";
                         break;
                     default:
                         markEOL = this.markEOL;
-                        tok = Token.ILLEGAL;
+                        tok = TokenType.ILLEGAL;
                         lit = ch.ToString();
                         break;
 
@@ -650,7 +702,7 @@ public class Lexer
             this.markEOL = markEOL;
         }
 
-        return new Item
+        return new Token
         {
             Pos = this.pos,
             Value = lit,
@@ -665,25 +717,25 @@ public class Lexer
 
     bool eof;
 
-    public List<Item> getTokens()
+    public List<Token> getTokens()
     {
-        List<Item> items = new();
+        List<Token> Tokens = new();
 
 
         while (!this.eof)
         {
-            items.Add(this.Scan());
+            Tokens.Add(this.Scan());
         }
 
-        items.Add(new Item
+        Tokens.Add(new Token
         {
             Pos = 1,
             Value = "EOF",
             Priority = 0,
-            Type = Token.EOF
+            Type = TokenType.EOF
         });
 
-        return items;
+        return Tokens;
     }
 
     private void Next()

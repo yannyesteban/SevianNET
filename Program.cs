@@ -83,7 +83,9 @@ namespace Whendy
         {
 
             Console.WriteLine("hello");
-            string source = "if(a==1){print 'x'}";
+            string source = "if(a==1){print 'x';}";
+
+            
             var lexer = new Lexer(source);
             var tokens = lexer.getTokens();
             tokens.ForEach(i => Console.WriteLine("pos: {0}, type: {1}, value: {2}", i.Pos, i.Type, i.Value));

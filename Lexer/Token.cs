@@ -6,7 +6,7 @@ namespace Whendy;
 
 
 
-public enum Token
+public enum TokenType
 {
     ILLEGAL,
     IDENT = 1, // main
@@ -92,31 +92,31 @@ public enum Token
 public static class Keyword
 {
     private readonly static int LowestPrec = 0;
-    private readonly static Dictionary<string, Whendy.Token> keywords = new(){
-        {"if", Token.IF},
-        {"else", Token.ELSE},
-        {"case", Token.CASE},
-        {"when", Token.WHEN},
-        {"while", Token.WHILE},
-        {"do", Token.DO},
-        {"default", Token.DEFAULT},
-        {"for", Token.FOR},
-        {"each", Token.EACH},
-        {"false", Token.FALSE},
-        {"true", Token.TRUE},
-        {"null", Token.NULL},
-        {"return", Token.RETURN},
-        {"break", Token.BREAK},
-        {"continue", Token.CONTINUE},
-        {"let", Token.CONTINUE},
-        {"class", Token.CLASS},
-        {"func", Token.FUNC},
-        {"fn", Token.FN},
-        {"print", Token.PRINT},
+    private readonly static Dictionary<string, Whendy.TokenType> keywords = new(){
+        {"if", TokenType.IF},
+        {"else", TokenType.ELSE},
+        {"case", TokenType.CASE},
+        {"when", TokenType.WHEN},
+        {"while", TokenType.WHILE},
+        {"do", TokenType.DO},
+        {"default", TokenType.DEFAULT},
+        {"for", TokenType.FOR},
+        {"each", TokenType.EACH},
+        {"false", TokenType.FALSE},
+        {"true", TokenType.TRUE},
+        {"null", TokenType.NULL},
+        {"return", TokenType.RETURN},
+        {"break", TokenType.BREAK},
+        {"continue", TokenType.CONTINUE},
+        {"let", TokenType.CONTINUE},
+        {"class", TokenType.CLASS},
+        {"func", TokenType.FUNC},
+        {"fn", TokenType.FN},
+        {"print", TokenType.PRINT},
     };
 
 
-    public static Token GetType(String token)
+    public static TokenType GetType(String token)
     {
 
 
@@ -126,17 +126,17 @@ public static class Keyword
             return keywords[token];
         }
 
-        return Token.IDENT;
+        return TokenType.IDENT;
     }
 
-    public static int precedence(Token op) {
+    public static int precedence(TokenType op) {
         return op switch
         {
-            Token.OR => 1,
-            Token.AND => 2,
-            Token.EQL or Token.NEQ or Token.LSS or Token.LEQ or Token.GTR or Token.GEQ => 3,
-            Token.ADD or Token.SUB => 4,//case Token.OR:
-            Token.MUL or Token.DIV or Token.MOD => 5,//case Token.AND:
+            TokenType.OR => 1,
+            TokenType.AND => 2,
+            TokenType.EQL or TokenType.NEQ or TokenType.LSS or TokenType.LEQ or TokenType.GTR or TokenType.GEQ => 3,
+            TokenType.ADD or TokenType.SUB => 4,//case Token.OR:
+            TokenType.MUL or TokenType.DIV or TokenType.MOD => 5,//case Token.AND:
             _ => LowestPrec,
         };
     }
