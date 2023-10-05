@@ -44,7 +44,7 @@ namespace Whendy
 
             Console.WriteLine(Tool.Do("x"));
 
-            Console.WriteLine(Keyword.getType("for"));
+            //Console.WriteLine(Keyword.getType("for"));
 
             Console.WriteLine("que {0}", "yanny");
 
@@ -82,7 +82,11 @@ namespace Whendy
         public static void Main(string[] args)
         {
 
-            
+            Console.WriteLine("hello");
+            string source = "if(a==1){print 'x'}";
+            var lexer = new Lexer(source);
+            var tokens = lexer.getTokens();
+            tokens.ForEach(i => Console.WriteLine("pos: {0}, type: {1}, value: {2}", i.Pos, i.Type, i.Value));
         }
 
 
