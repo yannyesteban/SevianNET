@@ -1,0 +1,14 @@
+[
+    {
+        "select": ["table0.field0", "table0.field1"],
+        "from": "table0:table0",
+        "join": ["inner", "table1:table1", { "table1.id": "table0.id" }],
+        "where": { "table0.field2:>=": 5 },
+        "groupBY": "table0.id",
+        "orderBy": 4
+    },
+    {
+        "sql":"select * from xx",
+        "filterBy":["name", "lasName"]
+    }
+]
